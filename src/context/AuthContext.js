@@ -28,7 +28,7 @@ const clearErrorMessage = (dispatch) => () => {
 const signup = (dispatch) => async ({ username, email, password }) => {
   try {
       console.log('Register request data:', { username, email, password }); // Debug log
-      const response = await axios.post('http://192.168.1.2:5000/api/users/register', {
+      const response = await axios.post('http://192.168.1.4:5000/api/users/register', {
           username,
           email,
           password,
@@ -46,7 +46,7 @@ const signup = (dispatch) => async ({ username, email, password }) => {
 const signin = (dispatch) => async ({ username, password }) => {
   try {
       console.log('Attempting to sign in:', { username, password }); // Debug log
-      const response = await axios.post('http://192.168.1.2:5000/api/users/login', {
+      const response = await axios.post('http://192.168.1.4:5000/api/users/login', {
           username,
           password,
       });

@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Provider as AuthProvider, Context as AuthContext } from './src/context/AuthContext';
 
 // Import layar dari folder /screen
-import LoginScreen from './src/screen/LoginScreen';
-import RegisterScreen from './src/screen/RegisterScreen'; 
+import LoginScreen from './src/login/LoginScreen';
+import RegisterScreen from './src/login/RegisterScreen'; 
 import HomeScreen from './src/screen/HomeScreen'; 
 import ExploreScreen from './src/screen/ExploreScreen';
 import ProfileScreen from './src/screen/ProfilScreen'; 

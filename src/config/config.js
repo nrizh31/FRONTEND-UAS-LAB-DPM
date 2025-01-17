@@ -1,7 +1,7 @@
 const DEV_API_URL = __DEV__ 
   ? Platform.select({
-      android: 'http://192.168.1.2:5000/api', // Ganti dengan IP komputer Anda
-      ios: 'http://localhost:5000/api',
+      android: 'http://192.168.1.4:3000/api', // Ganti dengan IP komputer Anda
+      ios: 'http://localhost:3000/api',
     })
   : 'https://api-production.example.com'; // URL production
 
