@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Context as AuthContext } from '../context/AuthContext';
-import Icon from 'react-native-vector-icons/Ionicons'; // Pastikan sudah install package ini
+import { Ionicons } from '@expo/vector-icons';
+import { darkTheme } from '../theme';
 
 const RegisterScreen = ({ navigation }) => {
   const { state, signup, clearErrorMessage } = useContext(AuthContext);
@@ -22,7 +23,7 @@ const RegisterScreen = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State untuk toggle password
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state.errorMessage || state.token) {
@@ -36,28 +37,21 @@ const RegisterScreen = ({ navigation }) => {
   const handleSignup = async () => {
     if (isSubmitting) return;
     clearErrorMessage();
-    
+
     try {
       setIsSubmitting(true);
-      const response = await signup({ username, email, password });
-      
-      if (!state.token && !state.errorMessage) {
-        setIsSubmitting(false);
-        setModalMessage('Registration successful! You can now log in.');
-        setModalVisible(true);
-      }
+      await signup({ username, email, password });
     } catch (error) {
       console.error('Signup failed:', error);
-      setIsSubmitting(false);
       setModalMessage(error.message || 'Registration failed. Please try again.');
       setModalVisible(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleModalClose = () => {
     setModalVisible(false);
-    setIsSubmitting(false);
-    
     if (!state.errorMessage) {
       navigation.navigate('Login');
     }
@@ -103,21 +97,21 @@ const RegisterScreen = ({ navigation }) => {
             secureTextEntry={!showPassword}
             editable={!isSubmitting}
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.eyeIcon}
             onPress={() => setShowPassword(!showPassword)}
           >
-            <Icon 
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
-              size={24} 
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={24}
               color="#666"
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={[styles.button, isSubmitting && styles.disabledButton]} 
+      <TouchableOpacity
+        style={[styles.button, isSubmitting && styles.disabledButton]}
         onPress={handleSignup}
         disabled={isSubmitting}
       >
@@ -141,11 +135,9 @@ const RegisterScreen = ({ navigation }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>{modalMessage}</Text>
-            {!isSubmitting && (
-              <TouchableOpacity style={styles.modalButton} onPress={handleModalClose}>
-                <Text style={styles.modalButtonText}>OK</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity style={styles.modalButton} onPress={handleModalClose}>
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -156,7 +148,7 @@ const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: darkTheme.background,
     padding: 20,
   },
   logoContainer: {
@@ -168,11 +160,12 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     marginBottom: 20,
+    borderRadius: 60,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: darkTheme.text.primary,
   },
   inputContainer: {
     marginBottom: 20,
@@ -180,41 +173,61 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: darkTheme.input.border,
     borderRadius: 10,
     paddingHorizontal: 15,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: darkTheme.input.background,
+    color: darkTheme.text.primary,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: darkTheme.input.border,
+    borderRadius: 10,
+    backgroundColor: darkTheme.input.background,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 50,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: darkTheme.text.primary,
+  },
+  eyeIcon: {
+    padding: 10,
   },
   button: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: darkTheme.button.primary,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
   },
   disabledButton: {
-    backgroundColor: '#87CEFA',
+    backgroundColor: darkTheme.button.disabled,
   },
   buttonText: {
-    color: '#fff',
+    color: darkTheme.text.primary,
     fontSize: 18,
     fontWeight: 'bold',
   },
   linkText: {
-    color: '#1e90ff',
+    color: darkTheme.primary,
     textAlign: 'center',
     marginTop: 20,
   },
   modalContainer: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: 300,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: darkTheme.modal.background,
     borderRadius: 10,
     alignItems: 'center',
   },
@@ -222,32 +235,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
+    color: darkTheme.text.primary,
   },
   modalButton: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: darkTheme.button.primary,
     padding: 10,
     borderRadius: 5,
   },
   modalButtonText: {
-    color: '#fff',
+    color: darkTheme.text.primary,
     fontSize: 16,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 50,
-    paddingHorizontal: 15,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    padding: 10,
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,18 +12,18 @@ import {
 } from 'react-native';
 import { Context as AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { darkTheme } from '../theme';
 
 const LoginScreen = ({ navigation }) => {
   const { state, signin, clearErrorMessage } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State untuk toggle password
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Jika login berhasil, navigasikan ke MainApp
     if (state.token) {
-      setLoading(false); // Pastikan loading dihentikan
+      setLoading(false);
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainApp' }],
@@ -33,13 +33,13 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     setLoading(true);
-    clearErrorMessage(); // Bersihkan pesan error lama
+    clearErrorMessage();
     try {
       await signin({ username, password });
     } catch (error) {
-      console.error('Login failed:', error); // Debugging log
+      console.error('Login failed:', error);
     } finally {
-      setLoading(false); // Pastikan loading dihentikan
+      setLoading(false);
     }
   };
 
@@ -70,7 +70,7 @@ const LoginScreen = ({ navigation }) => {
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry={!showPassword} // Toggle secureTextEntry
+            secureTextEntry={!showPassword}
           />
           <TouchableOpacity
             style={styles.eyeIcon}
@@ -85,14 +85,14 @@ const LoginScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {state.errorMessage ? (
+      {state.errorMessage && (
         <Text style={styles.errorMessage}>{state.errorMessage}</Text>
-      ) : null}
+      )}
 
       <TouchableOpacity
         style={[styles.button, loading && styles.disabledButton]}
         onPress={handleLogin}
-        disabled={loading} // Nonaktifkan tombol saat loading
+        disabled={loading}
       >
         {loading ? (
           <ActivityIndicator size="small" color="#fff" />
@@ -102,9 +102,7 @@ const LoginScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.linkText}>
-          Don't have an account? Sign up here
-        </Text>
+        <Text style={styles.linkText}>Don't have an account? Sign up here</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
@@ -113,7 +111,7 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: darkTheme.background,
     padding: 20,
   },
   logoContainer: {
@@ -125,11 +123,12 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     marginBottom: 20,
+    borderRadius: 60,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: darkTheme.text.primary,
   },
   inputContainer: {
     marginBottom: 20,
@@ -137,30 +136,34 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: darkTheme.input.border,
     borderRadius: 10,
     paddingHorizontal: 15,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: darkTheme.input.background,
+    color: darkTheme.text.primary,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: darkTheme.input.border,
     borderRadius: 10,
-    paddingHorizontal: 15,
+    backgroundColor: darkTheme.input.background,
   },
   passwordInput: {
     flex: 1,
     height: 50,
     fontSize: 16,
+    paddingHorizontal: 15,
+    color: darkTheme.text.primary,
   },
   eyeIcon: {
     padding: 10,
   },
   button: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: darkTheme.button.primary,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -168,20 +171,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   disabledButton: {
-    backgroundColor: '#87CEFA',
+    backgroundColor: darkTheme.button.disabled,
   },
   buttonText: {
-    color: '#fff',
+    color: darkTheme.text.primary,
     fontSize: 18,
     fontWeight: 'bold',
   },
   errorMessage: {
-    color: 'red',
+    color: darkTheme.accent,
     marginBottom: 15,
     textAlign: 'center',
   },
   linkText: {
-    color: '#1e90ff',
+    color: darkTheme.primary,
     textAlign: 'center',
     marginTop: 20,
   },

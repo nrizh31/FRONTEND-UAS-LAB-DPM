@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db'); // Import fungsi koneksi ke database
+const connectDB = require('./config/db');
 
 // Load environment variables
 dotenv.config();
@@ -12,14 +12,15 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors()); // Mengaktifkan CORS
-app.use(express.json()); // Parsing body request dengan format JSON
-app.use(express.urlencoded({ extended: false })); // Parsing body request dengan format URL-encoded
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Routes
-app.use('/api/users', require('./routes/UserRoutes')); // Route untuk user-related API
+app.use('/api/users', require('./routes/UserRoutes'));
+app.use('/api/explore', require('./routes/ExploreRoutes')); // Tambahkan rute explore
 
-// Default route (optional, bisa dihapus atau disesuaikan)
+// Default route
 app.get('/', (req, res) => {
     res.send('API is running...');
 });

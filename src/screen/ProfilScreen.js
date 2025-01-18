@@ -1,5 +1,4 @@
-// screens/ProfileScreen.js
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -15,106 +14,91 @@ import { Ionicons } from '@expo/vector-icons';
 const ProfileScreen = ({ navigation }) => {
   const { state, signout } = useContext(AuthContext);
   const { user } = state;
-
-  // State untuk pop-up modal
   const [isModalVisible, setModalVisible] = useState(false);
 
+  useEffect(() => {
+    if (navigation) {
+      navigation.setOptions({
+        title: 'Profile',
+        headerTitleStyle: {
+          fontSize: 20,
+          fontWeight: 'bold',
+          color: '#FFFFFF',
+        },
+        headerStyle: {
+          backgroundColor: '#121212',
+        },
+      });
+    }
+  }, [navigation]);
+
   const handleLogout = async () => {
-    console.log('Attempting to logout...');
-    await signout(); // Tunggu hingga state diubah
-    console.log('Logged out successfully');
-    
-    // Reset navigasi ke layar Login
+    await signout();
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }], // Arahkan ke Login
+      routes: [{ name: 'Login' }],
     });
   };
-  
-  
-  
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.profileInfo}>
-          {/* Gambar profil dari lokal */}
           <Image
-            source={require('../../assets/profil.jpg')} // Pastikan path benar
+            source={require('../../assets/profil.jpg')}
             style={styles.profileImage}
           />
-          {/* Tampilkan username dan email */}
           <Text style={styles.username}>{user?.username || 'Username'}</Text>
           <Text style={styles.email}>{user?.email || 'example@example.com'}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>My Activities</Text>
-        {[1, 2, 3].map((item) => (
-          <TouchableOpacity key={item} style={styles.activityItem}>
-            <Image
-              source={{ uri: `https://picsum.photos/200/200?random=${item + 10}` }}
-              style={styles.activityImage}
-            />
-            <View style={styles.activityContent}>
-              <Text style={styles.activityTitle}>Activity {item}</Text>
-              <Text style={styles.activityDescription}>
-                This is a description for activity {item}
-              </Text>
-              <Text style={styles.activityTime}>2 hours ago</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
         <TouchableOpacity style={styles.settingItem}>
-          <Ionicons name="person-outline" size={24} color="#333" />
+          <Ionicons name="person-outline" size={24} color="#999" />
           <Text style={styles.settingText}>Account Settings</Text>
-          <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          <Ionicons name="chevron-forward" size={24} color="#666" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem}>
-          <Ionicons name="notifications-outline" size={24} color="#333" />
+          <Ionicons name="notifications-outline" size={24} color="#999" />
           <Text style={styles.settingText}>Notifications</Text>
-          <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          <Ionicons name="chevron-forward" size={24} color="#666" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.settingItem}>
-          <Ionicons name="lock-closed-outline" size={24} color="#333" />
+          <Ionicons name="lock-closed-outline" size={24} color="#999" />
           <Text style={styles.settingText}>Privacy & Security</Text>
-          <Ionicons name="chevron-forward" size={24} color="#ccc" />
+          <Ionicons name="chevron-forward" size={24} color="#666" />
         </TouchableOpacity>
       </View>
 
-      {/* Tombol Logout */}
       <TouchableOpacity
         style={styles.logoutButton}
-        onPress={() => setModalVisible(true)} // Tampilkan modal saat tombol ditekan
+        onPress={() => setModalVisible(true)}
       >
         <Ionicons name="log-out-outline" size={20} color="#fff" />
         <Text style={styles.logoutButtonText}>Log Out</Text>
       </TouchableOpacity>
 
-      {/* Modal Konfirmasi Logout */}
       <Modal
         transparent={true}
         visible={isModalVisible}
         animationType="fade"
-        onRequestClose={() => setModalVisible(false)} // Tutup modal saat di-back
+        onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalText}>Apakah anda ingin keluar?</Text>
+            <Text style={styles.modalText}>Apakah Anda ingin keluar?</Text>
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity
                 style={styles.modalButton}
-                onPress={handleLogout} // Fungsi logout
+                onPress={handleLogout}
               >
                 <Text style={styles.modalButtonText}>Ya</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)} // Tutup modal
+                onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.modalButtonText}>Tidak</Text>
               </TouchableOpacity>
@@ -129,10 +113,10 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#121212',
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1e1e1e',
     padding: 20,
     alignItems: 'center',
   },
@@ -148,66 +132,36 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff',
   },
   email: {
     fontSize: 16,
-    color: '#666',
+    color: '#999',
     marginTop: 5,
   },
   section: {
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#1e1e1e',
     marginTop: 10,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  activityImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    margin: 10,
-  },
-  activityContent: {
-    flex: 1,
-    padding: 10,
-  },
-  activityTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  activityDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  activityTime: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 5,
+    color: '#fff',
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#333',
   },
   settingText: {
     flex: 1,
     fontSize: 16,
     marginLeft: 15,
-    color: '#333',
+    color: '#fff',
   },
   logoutButton: {
     flexDirection: 'row',
@@ -226,13 +180,13 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContainer: {
     width: 300,
-    backgroundColor: '#fff',
+    backgroundColor: '#1e1e1e',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
@@ -241,6 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 20,
+    color: '#fff',
   },
   modalButtonContainer: {
     flexDirection: 'row',
@@ -256,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#333',
   },
   modalButtonText: {
     color: '#fff',
@@ -264,5 +219,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
 export default ProfileScreen;
