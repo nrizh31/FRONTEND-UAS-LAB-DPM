@@ -50,9 +50,10 @@ const LoginScreen = ({ navigation }) => {
     >
       <View style={styles.logoContainer}>
         <Image
-          source={{ uri: 'https://i.pinimg.com/736x/81/b7/0d/81b70d4eae6ffb1e3250bc404982caa7.jpg' }}
+          source={require('../../assets/1.png')}
           style={styles.logo}
         />
+
         <Text style={styles.title}>Welcome Back!</Text>
       </View>
 

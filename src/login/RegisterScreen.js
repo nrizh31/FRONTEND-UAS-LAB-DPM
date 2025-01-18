@@ -64,7 +64,7 @@ const RegisterScreen = ({ navigation }) => {
     >
       <View style={styles.logoContainer}>
         <Image
-          source={{ uri: 'https://i.pinimg.com/736x/45/08/42/450842b9f0bfe048cf0303aea6d87dea.jpg' }}
+          source={require('../../assets/1.png')}
           style={styles.logo}
         />
         <Text style={styles.title}>Create Account</Text>
