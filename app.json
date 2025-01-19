@@ -27,6 +27,11 @@
     },
     "plugins": [
       "expo-font"
+    ],
+    "fonts": [
+      {
+        "asset": "./assets/fonts/Billabong.ttf"
+      }
     ]
   }
 }

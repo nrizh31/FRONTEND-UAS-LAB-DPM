@@ -20,6 +20,8 @@
     "dotenv": "^16.4.7",
     "expo": "~52.0.24",
     "expo-font": "~13.0.3",
+    "expo-image-picker": "^16.0.4",
+    "expo-sharing": "^13.0.1",
     "expo-status-bar": "~2.0.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",

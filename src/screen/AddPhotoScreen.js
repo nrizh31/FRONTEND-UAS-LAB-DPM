@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -12,6 +12,7 @@ import {
 import { Context as AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 const AddPhoto = ({ navigation }) => {
   const { state } = useContext(AuthContext);
@@ -20,6 +21,35 @@ const AddPhoto = ({ navigation }) => {
   const [description, setDescription] = useState('');
   const [previewVisible, setPreviewVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: 'Add Photo',
+      headerTitleStyle: {
+        fontFamily: 'Dancing-Script',
+        fontSize: 30,
+        fontWeight: 'normal',
+        color: '#FFFFFF',
+      },
+      headerStyle: {
+        backgroundColor: '#03DAC6', // Warna tosca
+      },
+    });
+  }, [navigation]);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+      setPreviewVisible(true);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!photo || !name || !description) {
@@ -59,11 +89,21 @@ const AddPhoto = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="images-outline" size={40} color="#1e90ff" />
+        <Ionicons name="images-outline" size={40} color="#03DAC6" />
         <Text style={styles.title}>Add New Photo</Text>
       </View>
 
-      <View style={styles.form}>
+      <View style={styles.uploadOptions}>
+        <TouchableOpacity 
+          style={styles.uploadButton} 
+          onPress={pickImage}
+        >
+          <Ionicons name="image" size={24} color="#fff" />
+          <Text style={styles.uploadButtonText}>Choose from Device</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.orText}>OR</Text>
+        
         <TextInput
           placeholder="Enter image URL"
           value={photo}
@@ -75,18 +115,20 @@ const AddPhoto = ({ navigation }) => {
           autoCapitalize="none"
           placeholderTextColor="#666"
         />
+      </View>
 
-        {previewVisible && photo && (
-          <View style={styles.previewContainer}>
-            <Image
-              source={{ uri: photo }}
-              style={styles.preview}
-              resizeMode="cover"
-              onError={() => console.log('Image preview failed')}
-            />
-          </View>
-        )}
+      {previewVisible && photo && (
+        <View style={styles.previewContainer}>
+          <Image
+            source={{ uri: photo }}
+            style={styles.preview}
+            resizeMode="cover"
+            onError={() => console.log('Image preview failed')}
+          />
+        </View>
+      )}
 
+      <View style={styles.form}>
         <TextInput
           placeholder="Photo Name"
           value={name}
@@ -126,7 +168,7 @@ const AddPhoto = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Disesuaikan dengan dark theme
+    backgroundColor: '#1A1B1E', // Warna Claude.ai
   },
   header: {
     alignItems: 'center',
@@ -140,6 +182,31 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#fff',
   },
+  uploadOptions: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  uploadButton: {
+    backgroundColor: '#03DAC6', // Warna tosca
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  uploadButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  orText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginVertical: 10,
+  },
   form: {
     padding: 20,
   },
@@ -150,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#121212', // Warna dalam border hitam
     color: '#fff',
   },
   descriptionInput: {
@@ -158,6 +225,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   previewContainer: {
+    marginHorizontal: 20,
     marginBottom: 15,
     borderRadius: 8,
     overflow: 'hidden',
@@ -167,10 +235,10 @@ const styles = StyleSheet.create({
   preview: {
     width: '100%',
     height: 200,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#121212',
   },
   addButton: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: '#03DAC6', // Warna tosca
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',

@@ -17,6 +17,7 @@ import {
 import { Context as AuthContext } from '../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import * as Share from 'expo-sharing';
 
 const HomeScreen = ({ navigation }) => {
   const { state } = useContext(AuthContext);
@@ -29,18 +30,15 @@ const HomeScreen = ({ navigation }) => {
   const [editedName, setEditedName] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [likeAnimation] = useState(new Animated.Value(0));
+  const [comments, setComments] = useState({});
+  const [commentsModalVisible, setCommentsModalVisible] = useState(false);
+  const [selectedPhotoId, setSelectedPhotoId] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [modalAnimation] = useState(new Animated.Value(0));
 
   useEffect(() => {
     navigation.setOptions({
-      title: 'Home',
-      headerTitleStyle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-      },
-      headerStyle: {
-        backgroundColor: '#121212',
-      },
+      headerTitle: 'PhotoGram'
     });
     fetchPhotos();
   }, [navigation]);
@@ -59,10 +57,30 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleDoubleTap = (photoId) => {
-    if (!likedPhotos.includes(photoId)) {
-      setLikedPhotos([...likedPhotos, photoId]);
+  const handleDoubleTap = async (photoId) => {
+    try {
+      if (!likedPhotos.includes(photoId)) {
+        setLikedPhotos([...likedPhotos, photoId]);
+        
+        // Play like animation
+        Animated.sequence([
+          Animated.timing(likeAnimation, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(likeAnimation, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ]).start();
+      }
+    } catch (error) {
+      console.error('Error liking photo:', error);
+    }
+  };
 
+  const handleLikePress = (photoId) => {
+    if (likedPhotos.includes(photoId)) {
+      // Unlike: remove from likedPhotos
+      setLikedPhotos(likedPhotos.filter(id => id !== photoId));
+    } else {
+      // Like: add to likedPhotos
+      setLikedPhotos([...likedPhotos, photoId]);
+      
       // Play like animation
       Animated.sequence([
         Animated.timing(likeAnimation, { toValue: 1, duration: 300, useNativeDriver: true }),
@@ -133,6 +151,38 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+  const handleComment = (photoId) => {
+    setSelectedPhotoId(photoId);
+    setCommentsModalVisible(true);
+    Animated.timing(modalAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeCommentModal = () => {
+    Animated.timing(modalAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setCommentsModalVisible(false);
+      setCommentText('');
+    });
+  };
+
+  const handleShare = async (photo) => {
+    try {
+      const result = await Share.share({
+        message: `Check out this photo by ${photo.user?.username || 'Anonymous'}: ${photo.description}`,
+        url: photo.photo // URL gambar
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share photo');
+    }
+  };
+
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date(date));
   };
@@ -142,15 +192,26 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.photoCard}>
         <View style={styles.photoHeader}>
           <View style={styles.userInfo}>
-            <Ionicons name="person-circle-outline" size={24} color="#999" />
-            <Text style={styles.username}>{item.user?.username || 'Anonymous'}</Text>
+            <View style={styles.avatarContainer}>
+              <Ionicons name="person-circle-outline" size={32} color="#999" />
+            </View>
+            <View style={styles.userTextContainer}>
+              <Text style={styles.username}>{item.user?.username || 'Anonymous'}</Text>
+              <Text style={styles.location}>Jakarta, Indonesia</Text>
+            </View>
           </View>
           {item.user?._id === state.user?._id && (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity onPress={() => handleEdit(item)} style={styles.actionButton}>
-                <Ionicons name="create-outline" size={24} color="#999" />
+            <View style={styles.headerButtons}>
+              <TouchableOpacity 
+                style={styles.headerButton} 
+                onPress={() => handleEdit(item)}
+              >
+                <Ionicons name="create-outline" size={24} color="#fff" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(item._id)} style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.headerButton}
+                onPress={() => handleDelete(item._id)}
+              >
                 <Ionicons name="trash-outline" size={24} color="#ff4444" />
               </TouchableOpacity>
             </View>
@@ -159,18 +220,30 @@ const HomeScreen = ({ navigation }) => {
 
         <Image source={{ uri: item.photo }} style={styles.photo} resizeMode="cover" />
 
-        <View style={styles.photoContent}>
-          <View style={styles.contentHeader}>
-            <View style={styles.textContent}>
-              <Text style={styles.photoName}>{item.name}</Text>
-              <Text style={styles.photoDescription}>{item.description}</Text>
-            </View>
-            {likedPhotos.includes(item._id) && (
-              <View style={styles.likeIcon}>
-                <Ionicons name="heart" size={24} color="#ff4444" />
-              </View>
-            )}
+        <View style={styles.actionBar}>
+          <View style={styles.leftActions}>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleLikePress(item._id)}>
+              {likedPhotos.includes(item._id) ? (
+                <Ionicons name="heart" size={28} color="#ff4444" />
+              ) : (
+                <Ionicons name="heart-outline" size={28} color="#fff" />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleComment(item._id)}>
+              <Ionicons name="chatbubble-outline" size={26} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleShare(item)}>
+              <Ionicons name="paper-plane-outline" size={26} color="#fff" />
+            </TouchableOpacity>
           </View>
+          <TouchableOpacity style={styles.actionIcon}>
+            <Ionicons name="bookmark-outline" size={26} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.photoContent}>
+          <Text style={styles.photoName}>{item.name}</Text>
+          <Text style={styles.caption}>{item.description}</Text>
           <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text>
         </View>
 
@@ -263,6 +336,66 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={commentsModalVisible}
+        transparent={true}
+        animationType="none"
+        onRequestClose={closeCommentModal}
+      >
+        <TouchableWithoutFeedback onPress={closeCommentModal}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <Animated.View
+                style={[
+                  styles.commentModal,
+                  {
+                    transform: [
+                      {
+                        translateY: modalAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [300, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <View style={styles.commentHeader}>
+                  <Text style={styles.commentTitle}>Comments</Text>
+                  <TouchableOpacity onPress={closeCommentModal}>
+                    <Ionicons name="close" size={24} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.commentsList}>
+                  <Text style={styles.noComments}>No comments yet</Text>
+                </View>
+
+                <View style={styles.commentInputContainer}>
+                  <TextInput
+                    style={styles.commentInput}
+                    placeholder="Add a comment..."
+                    placeholderTextColor="#666"
+                    value={commentText}
+                    onChangeText={setCommentText}
+                    multiline
+                  />
+                  <TouchableOpacity 
+                    style={styles.postButton}
+                    onPress={() => {
+                      // Handle post comment
+                      setCommentText('');
+                    }}
+                  >
+                    <Text style={styles.postButtonText}>Post</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
@@ -270,7 +403,7 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#1A1B1E',
   },
   loadingContainer: {
     flex: 1,
@@ -279,68 +412,100 @@ const styles = StyleSheet.create({
     backgroundColor: '#121212',
   },
   photoCard: {
-    backgroundColor: '#1e1e1e',
-    marginBottom: 10,
-    borderRadius: 10,
+    backgroundColor: '#121212',
+    marginBottom: 16,
+    marginHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#333',
     overflow: 'hidden',
-    elevation: 2,
-    marginHorizontal: 10,
-    marginTop: 10,
   },
   photoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 10,
+    alignItems: 'center',
+    padding: 12,
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  avatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2a2a2a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userTextContainer: {
+    marginLeft: 10,
+  },
   username: {
-    fontWeight: 'bold',
-    marginLeft: 8,
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 14,
     color: '#fff',
+  },
+  location: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   photo: {
     width: '100%',
-    height: 300,
+    height: 400,
     backgroundColor: '#2a2a2a',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#333',
   },
-  likeIcon: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-  },
-  actionButtons: {
+  actionBar: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  actionButton: {
-    marginLeft: 15,
+  leftActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionIcon: {
+    marginRight: 16,
   },
   photoContent: {
-    padding: 15,
+    paddingHorizontal: 12,
+    paddingBottom: 0,
   },
   photoName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 8,
+    marginBottom: 4,
   },
-  photoDescription: {
-    fontSize: 14,
-    color: '#999',
-    marginBottom: 5,
+  caption: {
+    color: '#fff',
+    marginTop: 4,
   },
   timestamp: {
     fontSize: 12,
     color: '#666',
+    marginTop: 2,
+    marginBottom: 8,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(26, 27, 30, 0.9)',
+    justifyContent: 'flex-end',
+    padding: 24,
   },
   modalContent: {
     backgroundColor: '#1e1e1e',
@@ -400,6 +565,66 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     color: '#999',
+  },
+  likePopup: {
+    position: 'absolute',
+    top: 200,
+    left: 120,
+    transform: [{ scale: 0 }],
+    opacity: 0,
+  },
+  commentModal: {
+    backgroundColor: '#121212',
+    borderRadius: 24,
+    height: '45%',
+    padding: 32,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  commentTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  commentsList: {
+    flex: 1,
+    marginBottom: 16,
+  },
+  noComments: {
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  commentInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+    paddingTop: 16,
+  },
+  commentInput: {
+    flex: 1,
+    backgroundColor: '#222',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    color: '#fff',
+    marginRight: 8,
+  },
+  postButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  postButtonText: {
+    color: '#1e90ff',
+    fontWeight: 'bold',
   },
 });
 

@@ -11,7 +11,7 @@ import * as Font from 'expo-font';
 import LoginScreen from './src/login/LoginScreen';
 import RegisterScreen from './src/login/RegisterScreen';
 import HomeScreen from './src/screen/HomeScreen';
-import AddPhoto from './src/screen/AddPhoto';
+import AddPhoto from './src/screen/AddPhotoScreen';
 import ProfileScreen from './src/screen/ProfilScreen';
 
 // Import theme
@@ -49,54 +49,43 @@ function TabNavigator() {
     }
   };
 
-  const screenOptions = {
-    tabBarActiveTintColor: darkTheme.primary,
-    tabBarInactiveTintColor: darkTheme.text.muted,
-    tabBarStyle: {
-      backgroundColor: darkTheme.surface,
-      borderTopColor: darkTheme.border,
-      height: 60,
-      paddingBottom: 10,
-    },
-    headerStyle: {
-      backgroundColor: darkTheme.surface,
-      borderBottomColor: darkTheme.border,
-      borderBottomWidth: 1,
-    },
-    headerTintColor: '#FFFFFF',
-    headerTitleStyle: {
-      fontFamily: 'Dancing-Script',
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-    },
-    headerTitleAlign: 'center',
-    tabBarShowLabel: true,
-    tabBarLabelStyle: {
-      fontSize: 12,
-    },
-  };
-
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        ...screenOptions,
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-          return <Ionicons name={iconName} size={size} color={color} />;
+      screenOptions={{
+        tabBarActiveTintColor: '#03DAC6',
+        tabBarInactiveTintColor: darkTheme.text.muted,
+        tabBarStyle: {
+          backgroundColor: '#1A1B1E',
+          borderTopColor: darkTheme.border,
+          height: 60,
+          paddingBottom: 10,
         },
-      })}
+        headerStyle: {
+          backgroundColor: '#03DAC6',
+          borderBottomWidth: 0,
+        },
+        headerTintColor: '#FFFFFF',
+        headerTitleStyle: {
+          fontFamily: 'Dancing-Script',
+          fontSize: 30,
+          fontWeight: '900',
+          color: '#FFFFFF',
+        },
+        headerTitleAlign: 'center',
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: 12,
+        },
+      }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
           headerTitle: 'PhotoGram',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
         }}
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
@@ -112,14 +101,19 @@ function TabNavigator() {
           headerTitle: 'PhotoGram',
           tabBarLabel: 'Add Photo',
           tabBarButton: (props) => (
-            <View style={{ height: 60, alignItems: 'center' }}>
+            <View style={{ 
+              height: 60, 
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingBottom: 15,
+            }}>
               <TouchableOpacity
                 {...props}
                 style={{
                   top: -20,
                   justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: darkTheme.primary,
+                  backgroundColor: '#03DAC6',
                   height: 50,
                   width: 50,
                   borderRadius: 35,
@@ -129,10 +123,13 @@ function TabNavigator() {
                 <MaterialIcons name="add" size={40} color="#FFFFFF" />
               </TouchableOpacity>
               <Text style={{ 
-                color: darkTheme.text.primary,
+                color: '#03DAC6',
                 fontSize: 12,
-                marginTop: 25,
+                marginTop: 15,
                 textAlign: 'center',
+                position: 'absolute',
+                bottom: 5,
+                width: '100%',
               }}>
                 Add Photo
               </Text>
@@ -151,6 +148,9 @@ function TabNavigator() {
         component={ProfileScreen}
         options={{
           headerTitle: 'PhotoGram',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
@@ -171,7 +171,7 @@ function RootNavigator() {
       initialRouteName={state.token ? 'MainApp' : 'Login'}
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: darkTheme.background },
+        cardStyle: { backgroundColor: darkTheme.background }
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />

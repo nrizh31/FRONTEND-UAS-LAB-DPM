@@ -17,19 +17,18 @@ const ProfileScreen = ({ navigation }) => {
   const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-    if (navigation) {
-      navigation.setOptions({
-        title: 'Profile',
-        headerTitleStyle: {
-          fontSize: 20,
-          fontWeight: 'bold',
-          color: '#FFFFFF',
-        },
-        headerStyle: {
-          backgroundColor: '#121212',
-        },
-      });
-    }
+    navigation.setOptions({
+      title: 'Profile',
+      headerTitleStyle: {
+        fontFamily: 'Dancing-Script',
+        fontSize: 30,
+        fontWeight: 'normal',
+        color: '#FFFFFF',
+      },
+      headerStyle: {
+        backgroundColor: '#03DAC6', // Warna tosca
+      },
+    });
   }, [navigation]);
 
   const handleLogout = async () => {
@@ -113,7 +112,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#1A1B1E',
   },
   header: {
     backgroundColor: '#1e1e1e',
