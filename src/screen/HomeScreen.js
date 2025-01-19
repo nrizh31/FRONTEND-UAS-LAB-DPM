@@ -19,6 +19,105 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import * as Share from 'expo-sharing';
 
+const CustomAlert = ({ visible, title, message, onClose }) => (
+  <Modal
+    visible={visible}
+    transparent={true}
+    animationType="fade"
+  >
+    <View style={styles.alertOverlay}>
+      <View style={styles.alertContent}>
+        <Text style={styles.alertTitle}>{title}</Text>
+        <Text style={styles.alertMessage}>{message}</Text>
+        <TouchableOpacity 
+          style={styles.alertButton} 
+          onPress={onClose}
+        >
+          <Text style={styles.alertButtonText}>OK</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+);
+
+const DeleteConfirmationAlert = ({ visible, onConfirm, onCancel }) => (
+  <Modal
+    visible={visible}
+    transparent={true}
+    animationType="fade"
+  >
+    <View style={styles.alertOverlay}>
+      <View style={styles.alertContent}>
+        <Text style={styles.alertTitle}>Delete Photo</Text>
+        <Text style={styles.alertMessage}>Are you sure you want to delete this photo?</Text>
+        <View style={styles.alertButtonContainer}>
+          <TouchableOpacity 
+            style={[styles.alertButton, styles.cancelButton]} 
+            onPress={onCancel}
+          >
+            <Text style={styles.alertButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.alertButton, styles.deleteButton]} 
+            onPress={onConfirm}
+          >
+            <Text style={styles.alertButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+);
+
+const EditModal = ({ visible, onClose, onSave, name, setName, description, setDescription }) => (
+  <Modal
+    visible={visible}
+    transparent={true}
+    animationType="fade"
+    onRequestClose={onClose}
+  >
+    <View style={styles.alertOverlay}>
+      <View style={[styles.alertContent, styles.editModalContent]}>
+        <Text style={styles.alertTitle}>Edit Photo</Text>
+
+        <TextInput
+          style={styles.modalInput}
+          value={name}
+          onChangeText={setName}
+          placeholder="Photo Name"
+          placeholderTextColor="#666"
+        />
+
+        <TextInput
+          style={[styles.modalInput, styles.modalTextArea]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Description"
+          placeholderTextColor="#666"
+          multiline
+          numberOfLines={4}
+        />
+
+        <View style={styles.alertButtonContainer}>
+          <TouchableOpacity
+            style={[styles.alertButton, styles.cancelButton]}
+            onPress={onClose}
+          >
+            <Text style={styles.alertButtonText}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.alertButton, styles.saveButton]}
+            onPress={onSave}
+          >
+            <Text style={styles.alertButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+);
+
 const HomeScreen = ({ navigation }) => {
   const { state } = useContext(AuthContext);
   const [photos, setPhotos] = useState([]);
@@ -35,10 +134,26 @@ const HomeScreen = ({ navigation }) => {
   const [selectedPhotoId, setSelectedPhotoId] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [modalAnimation] = useState(new Animated.Value(0));
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: ''
+  });
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState(null);
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: 'PhotoGram'
+      headerTitle: 'PhotoGram',
+      headerTitleStyle: {
+        fontFamily: 'Dancing-Script',
+        fontSize: 30,
+        fontWeight: 'normal',
+        color: '#FFFFFF',
+      },
+      headerStyle: {
+        backgroundColor: '#03DAC6', // Warna tosca
+      },
     });
     fetchPhotos();
   }, [navigation]);
@@ -113,42 +228,48 @@ const HomeScreen = ({ navigation }) => {
 
       setEditModalVisible(false);
       fetchPhotos();
-      Alert.alert('Success', 'Photo updated successfully');
+      setAlertConfig({
+        visible: true,
+        title: 'Success',
+        message: 'Photo updated successfully'
+      });
     } catch (error) {
       console.error('Error updating photo:', error);
-      Alert.alert('Error', 'Failed to update photo');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Failed to update photo'
+      });
     }
   };
 
-  const handleDelete = async (id) => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to delete this photo?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+  const handleDelete = (id) => {
+    setPhotoToDelete(id);
+    setDeleteConfirmVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`http://192.168.1.4:5000/api/explore/${photoToDelete}`, {
+        headers: {
+          Authorization: `Bearer ${state.token}`,
         },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`http://192.168.1.4:5000/api/explore/${id}`, {
-                headers: {
-                  Authorization: `Bearer ${state.token}`,
-                },
-              });
-              fetchPhotos();
-              Alert.alert('Success', 'Photo deleted successfully');
-            } catch (error) {
-              console.error('Error deleting photo:', error);
-              Alert.alert('Error', 'Failed to delete photo');
-            }
-          },
-        },
-      ]
-    );
+      });
+      setDeleteConfirmVisible(false);
+      fetchPhotos();
+      setAlertConfig({
+        visible: true,
+        title: 'Success',
+        message: 'Photo deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Failed to delete photo'
+      });
+    }
   };
 
   const handleComment = (photoId) => {
@@ -290,52 +411,15 @@ const HomeScreen = ({ navigation }) => {
         )}
       />
 
-      <Modal
+      <EditModal
         visible={editModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Photo</Text>
-
-            <TextInput
-              style={styles.modalInput}
-              value={editedName}
-              onChangeText={setEditedName}
-              placeholder="Photo Name"
-              placeholderTextColor="#666"
-            />
-
-            <TextInput
-              style={[styles.modalInput, styles.modalTextArea]}
-              value={editedDescription}
-              onChangeText={setEditedDescription}
-              placeholder="Description"
-              placeholderTextColor="#666"
-              multiline
-              numberOfLines={4}
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setEditModalVisible(false)}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={handleUpdate}
-              >
-                <Text style={styles.buttonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setEditModalVisible(false)}
+        onSave={handleUpdate}
+        name={editedName}
+        setName={setEditedName}
+        description={editedDescription}
+        setDescription={setEditedDescription}
+      />
 
       <Modal
         visible={commentsModalVisible}
@@ -396,6 +480,19 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+      />
+
+      <DeleteConfirmationAlert
+        visible={deleteConfirmVisible}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmVisible(false)}
+      />
     </View>
   );
 };
@@ -548,7 +645,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
   },
   saveButton: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: '#03DAC6',
   },
   buttonText: {
     color: '#fff',
@@ -625,6 +722,61 @@ const styles = StyleSheet.create({
   postButtonText: {
     color: '#1e90ff',
     fontWeight: 'bold',
+  },
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  alertContent: {
+    backgroundColor: '#1A1B1E',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  alertTitle: {
+    color: '#03DAC6',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  alertMessage: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  alertButton: {
+    backgroundColor: '#03DAC6',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  alertButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  alertButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  deleteButton: {
+    backgroundColor: '#ff4444',
+  },
+  editModalContent: {
+    width: '90%',
+    maxWidth: 400,
+  },
+  saveButton: {
+    backgroundColor: '#03DAC6',
   },
 });
 

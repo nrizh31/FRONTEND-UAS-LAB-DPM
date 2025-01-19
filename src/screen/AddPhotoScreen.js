@@ -53,7 +53,20 @@ const AddPhoto = ({ navigation }) => {
 
   const handleSubmit = async () => {
     if (!photo || !name || !description) {
-      Alert.alert('Error', 'Please fill all fields');
+      Alert.alert(
+        'Missing Fields',
+        'Please fill all fields',
+        [
+          {
+            text: 'OK',
+            style: 'default',
+          }
+        ],
+        {
+          cancelable: true,
+          userInterfaceStyle: 'dark',
+        }
+      );
       return;
     }
 
@@ -73,14 +86,43 @@ const AddPhoto = ({ navigation }) => {
         }
       );
 
-      Alert.alert('Success', 'Photo added successfully!');
-      setPhoto('');
-      setName('');
-      setDescription('');
-      setPreviewVisible(false);
+      Alert.alert(
+        'Success',
+        'Photo added successfully!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setPhoto('');
+              setName('');
+              setDescription('');
+              setPreviewVisible(false);
+              navigation.goBack(); // Optional: navigate back after success
+            },
+            style: 'default',
+          }
+        ],
+        {
+          cancelable: false,
+          userInterfaceStyle: 'dark',
+        }
+      );
     } catch (error) {
       console.error('Error adding photo:', error);
-      Alert.alert('Error', 'Failed to add photo. Please try again.');
+      Alert.alert(
+        'Error',
+        'Failed to add photo. Please try again.',
+        [
+          {
+            text: 'OK',
+            style: 'default',
+          }
+        ],
+        {
+          cancelable: true,
+          userInterfaceStyle: 'dark',
+        }
+      );
     } finally {
       setIsLoading(false);
     }
