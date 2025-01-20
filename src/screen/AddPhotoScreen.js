@@ -8,11 +8,33 @@ import {
   Alert,
   Image,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { Context as AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+
+const CustomAlert = ({ visible, title, message, onClose }) => (
+  <Modal
+    visible={visible}
+    transparent={true}
+    animationType="fade"
+  >
+    <View style={styles.alertOverlay}>
+      <View style={styles.alertContent}>
+        <Text style={styles.alertTitle}>{title}</Text>
+        <Text style={styles.alertMessage}>{message}</Text>
+        <TouchableOpacity 
+          style={styles.alertButton} 
+          onPress={onClose}
+        >
+          <Text style={styles.alertButtonText}>OK</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+);
 
 const AddPhoto = ({ navigation }) => {
   const { state } = useContext(AuthContext);
@@ -21,6 +43,11 @@ const AddPhoto = ({ navigation }) => {
   const [description, setDescription] = useState('');
   const [previewVisible, setPreviewVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     navigation.setOptions({
@@ -53,20 +80,11 @@ const AddPhoto = ({ navigation }) => {
 
   const handleSubmit = async () => {
     if (!photo || !name || !description) {
-      Alert.alert(
-        'Missing Fields',
-        'Please fill all fields',
-        [
-          {
-            text: 'OK',
-            style: 'default',
-          }
-        ],
-        {
-          cancelable: true,
-          userInterfaceStyle: 'dark',
-        }
-      );
+      setAlertConfig({
+        visible: true,
+        title: 'Missing Fields',
+        message: 'Please fill all fields'
+      });
       return;
     }
 
@@ -86,46 +104,26 @@ const AddPhoto = ({ navigation }) => {
         }
       );
 
-      Alert.alert(
-        'Success',
-        'Photo added successfully!',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setPhoto('');
-              setName('');
-              setDescription('');
-              setPreviewVisible(false);
-              navigation.goBack(); // Optional: navigate back after success
-            },
-            style: 'default',
-          }
-        ],
-        {
-          cancelable: false,
-          userInterfaceStyle: 'dark',
-        }
-      );
+      setPhoto('');
+      setName('');
+      setDescription('');
+      setPreviewVisible(false);
+      
+      setAlertConfig({
+        visible: true,
+        title: 'Success',
+        message: 'Photo added successfully!'
+      });
+      
     } catch (error) {
       console.error('Error adding photo:', error);
-      Alert.alert(
-        'Error',
-        'Failed to add photo. Please try again.',
-        [
-          {
-            text: 'OK',
-            style: 'default',
-          }
-        ],
-        {
-          cancelable: true,
-          userInterfaceStyle: 'dark',
-        }
-      );
-    } finally {
-      setIsLoading(false);
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Failed to add photo. Please try again.'
+      });
     }
+    setIsLoading(false);
   };
 
   return (
@@ -203,6 +201,18 @@ const AddPhoto = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.title === 'Success') {
+            navigation.goBack();
+          }
+        }}
+      />
     </ScrollView>
   );
 };
@@ -290,6 +300,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
   },
   buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  alertContent: {
+    backgroundColor: '#1A1B1E',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  alertTitle: {
+    color: '#03DAC6',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  alertMessage: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  alertButton: {
+    backgroundColor: '#03DAC6',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  alertButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
